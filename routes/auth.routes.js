@@ -2,6 +2,7 @@ const User = require("../models/User.model");
 const bcrypt = require("bcryptjs");
 const router = require("express").Router();
 const jwt = require("jsonwebtoken");
+const isTokenValid = require("../middlewares/auth.middlewares");
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_DURATION = 3 * 60 * 1000;
@@ -191,5 +192,10 @@ function incrementLoginAttempts(username) {
     loginAttempts[username].lastAttempt = Date.now();
   }
 }
+
+// GET "/api/auth/verify" to inform the front-end whether the user is active and what their status is
+router.get("/verify", isTokenValid, (req, res, next) => {
+  res.json({ payload: req.payload });
+});
 
 module.exports = router;
