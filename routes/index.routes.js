@@ -19,13 +19,13 @@ router.use("/store", storeRouter);
 const cartRouter = require("./cart.routes");
 router.use("/cart", cartRouter);
 
-const orderRouter = require("./order.routes");
+const orderRouter = require("./orders.routes");
 router.use("/order", orderRouter);
 
 const paymentRouter = require("./payment.routes");
 router.use("/payment", paymentRouter);
 
-const reviewRouter = require("./review.routes");
+const reviewRouter = require("./reviews.routes");
 router.use("/review", reviewRouter);
 
 const commentRouter = require("./comments.routes");
