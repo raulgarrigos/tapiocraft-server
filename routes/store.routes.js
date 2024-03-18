@@ -33,12 +33,21 @@ router.get("/:storeId", isTokenValid, async (req, res, next) => {
     next(error);
   }
 });
+
 // PUT /api/store/:storeId to edit a store.
 router.put("/:storeId", isTokenValid, async (req, res, next) => {
   const { name, description, address, category, refundPolicy } = req.body;
   const { storeId } = req.params;
 
   try {
+    // Verificar si el usuario tiene permisos para editar la tienda
+    const store = await Store.findById(storeId);
+    if (!store || store.owner.toString() !== req.payload._id) {
+      return res
+        .status(403)
+        .json({ message: "No tienes permiso para editar esta tienda" });
+    }
+
     const response = await Store.findByIdAndUpdate(storeId, {
       name,
       description,
@@ -56,6 +65,14 @@ router.put("/:storeId", isTokenValid, async (req, res, next) => {
 // DELETE /api/store/:storeId to delete a store
 router.delete("/:storeId", isTokenValid, async (req, res, next) => {
   try {
+    // Verificar si el usuario tiene permisos para eliminar la tienda
+    const store = await Store.findById(req.params.storeId);
+    if (!store || store.owner.toString() !== req.payload._id) {
+      return res
+        .status(403)
+        .json({ message: "No tienes permiso para eliminar esta tienda" });
+    }
+
     await Store.findByIdAndDelete(req.params.storeId);
     res.json("Store deleted");
   } catch (error) {
@@ -66,31 +83,41 @@ router.delete("/:storeId", isTokenValid, async (req, res, next) => {
 // POST /api/store/:storeId/products to add a product to a store.
 router.post("/:storeId/product", isTokenValid, async (req, res, next) => {
   const { name, description, price, category, stock } = req.body;
-  const store = req.params.storeId;
+  const storeId = req.params.storeId;
   const ownerId = req.payload._id;
 
   try {
+    // Verificar si el usuario tiene permisos para añadir un producto a la tienda
+    const store = await Store.findById(storeId);
+    if (!store || store.owner.toString() !== ownerId) {
+      return res
+        .status(403)
+        .json({
+          message: "No tienes permiso para añadir un producto a esta tienda",
+        });
+    }
+
     const product = await Product.create({
       name,
       description,
       price,
       category,
       stock,
-      store,
+      store: storeId,
       ownerId,
     });
 
-    await Store.findByIdAndUpdate(
-      req.params.storeId,
-      { $push: { products: product._id } },
-      { new: true }
-    );
+    // Añadir el ID del producto a la lista de productos de la tienda
+    await Store.findByIdAndUpdate(storeId, {
+      $push: { products: product._id },
+    });
 
     res.json(product);
   } catch (error) {
     next(error);
   }
 });
+
 // GET /api/store/:storeId/products to get a list of products in a specific store.
 router.get("/:storeId/products", isTokenValid, async (req, res, next) => {
   try {
