@@ -44,6 +44,12 @@ const storeSchema = new mongoose.Schema(
         ref: "Comment",
       },
     ],
+    products: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+      },
+    ],
   },
   { timestamps: true }
 );

@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const isTokenValid = require("../middlewares/auth.middlewares");
 const Store = require("../models/Store.model");
+const Product = require("../models/Product.model");
 
 // POST /api/store to create a new store.
 router.post("/", isTokenValid, async (req, res, next) => {
@@ -63,7 +64,124 @@ router.delete("/:storeId", isTokenValid, async (req, res, next) => {
 });
 
 // POST /api/store/:storeId/products to add a product to a store.
+router.post("/:storeId/product", isTokenValid, async (req, res, next) => {
+  const { name, description, price, category, stock } = req.body;
+  const store = req.params.storeId;
+  const ownerId = req.payload._id;
+
+  try {
+    const product = await Product.create({
+      name,
+      description,
+      price,
+      category,
+      stock,
+      store,
+      ownerId,
+    });
+
+    await Store.findByIdAndUpdate(
+      req.params.storeId,
+      { $push: { products: product._id } },
+      { new: true }
+    );
+
+    res.json(product);
+  } catch (error) {
+    next(error);
+  }
+});
 // GET /api/store/:storeId/products to get a list of products in a specific store.
+router.get("/:storeId/products", isTokenValid, async (req, res, next) => {
+  try {
+    const response = await Store.findById(req.params.storeId).populate(
+      "products"
+    );
+
+    if (!response) {
+      return res.status(404).json({ message: "Tienda no encontrada" });
+    }
+
+    res.json(response.products);
+  } catch (error) {
+    next(error);
+  }
+});
+
 // PUT /api/store/:storeId/products/:productId to edit the information of a product in a store.
+router.put(
+  "/:storeId/products/:productId",
+  isTokenValid,
+  async (req, res, next) => {
+    try {
+      const { name, description, price, category, stock } = req.body;
+      const { storeId, productId } = req.params;
+
+      // Verificar si el usuario tiene permisos para editar el producto
+      const store = await Store.findById(storeId);
+      if (!store || store.owner.toString() !== req.payload._id) {
+        return res
+          .status(403)
+          .json({ message: "No tienes permiso para editar este producto" });
+      }
+
+      // Actualizar el producto
+      const updatedProduct = await Product.findByIdAndUpdate(
+        productId,
+        {
+          name,
+          description,
+          price,
+          category,
+          stock,
+        },
+        { new: true } // Para obtener el producto actualizado
+      );
+
+      if (!updatedProduct) {
+        return res.status(404).json({ message: "Producto no encontrado" });
+      }
+
+      res.json(updatedProduct);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 // DELETE /api/store/:storeId/products/:productId to delete a product from a store.
+router.delete(
+  "/:storeId/products/:productId",
+  isTokenValid,
+  async (req, res, next) => {
+    try {
+      const { storeId, productId } = req.params;
+
+      // Verificar si el usuario tiene permisos para eliminar el producto
+      const store = await Store.findById(storeId);
+      if (!store || store.owner.toString() !== req.payload._id) {
+        return res
+          .status(403)
+          .json({ message: "No tienes permiso para eliminar este producto" });
+      }
+
+      // Eliminar el producto
+      const deletedProduct = await Product.findByIdAndDelete(productId);
+
+      // Actualizar la lista de productos en la tienda
+      await Store.findByIdAndUpdate(storeId, {
+        $pull: { products: productId },
+      });
+
+      if (!deletedProduct) {
+        return res.status(404).json({ message: "Producto no encontrado" });
+      }
+
+      res.json({ message: "Producto eliminado correctamente" });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 module.exports = router;
