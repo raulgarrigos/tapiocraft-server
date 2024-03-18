@@ -155,7 +155,7 @@ router.post("/login", async (req, res, next) => {
 
       const errorMessage =
         remainingAttempts > 0
-          ? `Incorrect username. You have <span class="math-inline">\{remainingAttempts\} attempt</span>{
+          ? `Incorrect username. You have ${remainingAttempts} attempt${
               remainingAttempts === 1 ? "" : "s"
             } left.`
           : `Too many login attempts. Please try again after ${Math.floor(
