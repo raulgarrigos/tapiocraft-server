@@ -178,9 +178,10 @@ router.post("/login", async (req, res, next) => {
       const remainingAttempts =
         MAX_LOGIN_ATTEMPTS - loginAttempts[username].attempts;
 
-      const attemptsLeftMessage = `You have <span class="math-inline">\{remainingAttempts\} attempt</span>{
-          remainingAttempts === 1 ? "" : "s"
-        } left.`;
+      const attemptsLeftMessage = `You have ${remainingAttempts} attempt${
+        remainingAttempts === 1 ? "" : "s"
+      } left.`;
+
       const errorMessage =
         remainingAttempts > 0
           ? `Incorrect password. ${attemptsLeftMessage}`
