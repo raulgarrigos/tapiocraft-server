@@ -11,10 +11,10 @@ let loginAttempts = {};
 
 // POST "/api/auth/register" to create a new user
 router.post("/register", async (req, res, next) => {
-  const { username, email, password } = req.body;
+  const { username, email, password, dateOfBirth } = req.body;
 
   // Empty fields validation
-  if (!username || !email || !password) {
+  if (!username || !email || !password || !dateOfBirth) {
     res.status(400).json({ errorMessage: "All fields must be filled" });
     return;
   }
@@ -67,6 +67,24 @@ router.post("/register", async (req, res, next) => {
       res.status(400).json({
         errorMessage: "This email is already in use.",
         field: "email",
+      });
+      return;
+    }
+
+    const birth = new Date(dateOfBirth);
+    const today = new Date();
+    const age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
+      age--;
+    }
+    if (age < 18) {
+      res.status(400).json({
+        errorMessage: "You must be at least 18 years old to register.",
+        field: "dateOfBirth",
       });
       return;
     }
