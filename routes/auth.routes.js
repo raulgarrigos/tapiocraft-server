@@ -40,6 +40,11 @@ router.post("/register", async (req, res, next) => {
     return;
   }
 
+  if (!dateOfBirth) {
+    res.status(400).json({ errorMessage: "Date of birth is required" });
+    return;
+  }
+
   // Username validation
   if (username.length < 6 || !/^[a-zA-Z0-9_]+$/.test(username)) {
     res.status(400).json({
@@ -72,8 +77,8 @@ router.post("/register", async (req, res, next) => {
     }
 
     const birth = new Date(dateOfBirth);
-    const today = new Date();
-    const age = today.getFullYear() - birth.getFullYear();
+    let today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
     if (
       monthDiff < 0 ||
@@ -97,6 +102,7 @@ router.post("/register", async (req, res, next) => {
       username,
       email,
       password: hashPassword,
+      dateOfBirth,
     });
 
     const payload = {
