@@ -3,8 +3,18 @@ const isTokenValid = require("../middlewares/auth.middlewares");
 const Store = require("../models/Store.model");
 const Product = require("../models/Product.model");
 
-// POST /api/store to create a new store.
-router.post("/", isTokenValid, async (req, res, next) => {
+// GET /api/store para obtener todas las tiendas.
+router.get("/", isTokenValid, async (req, res, next) => {
+  try {
+    const stores = await Store.find();
+    res.json(stores);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/store/create to create a new store.
+router.post("/create", isTokenValid, async (req, res, next) => {
   const { name, description, category } = req.body;
 
   try {
@@ -15,6 +25,16 @@ router.post("/", isTokenValid, async (req, res, next) => {
       category,
     });
     res.json(response);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/store/user/:userId para obtener las tiendas de un usuario específico.
+router.get("/user/:userId", isTokenValid, async (req, res, next) => {
+  try {
+    const stores = await Store.find({ owner: req.params.userId });
+    res.json(stores);
   } catch (error) {
     next(error);
   }
@@ -90,11 +110,9 @@ router.post("/:storeId/product", isTokenValid, async (req, res, next) => {
     // Verificar si el usuario tiene permisos para añadir un producto a la tienda
     const store = await Store.findById(storeId);
     if (!store || store.owner.toString() !== ownerId) {
-      return res
-        .status(403)
-        .json({
-          message: "No tienes permiso para añadir un producto a esta tienda",
-        });
+      return res.status(403).json({
+        message: "No tienes permiso para añadir un producto a esta tienda",
+      });
     }
 
     const product = await Product.create({
