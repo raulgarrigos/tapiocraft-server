@@ -4,7 +4,7 @@ const Store = require("../models/Store.model");
 const Product = require("../models/Product.model");
 
 // GET /api/store para obtener todas las tiendas.
-router.get("/", isTokenValid, async (req, res, next) => {
+router.get("/", async (req, res, next) => {
   try {
     const stores = await Store.find();
     res.json(stores);
@@ -41,11 +41,10 @@ router.get("/user/:userId", isTokenValid, async (req, res, next) => {
 });
 
 // GET /api/store/:storeId to get the information of a store.
-router.get("/:storeId", isTokenValid, async (req, res, next) => {
+router.get("/:storeId", async (req, res, next) => {
   try {
     const response = await Store.findOne({
       _id: req.params.storeId,
-      owner: req.payload._id,
     });
     console.log(response);
     res.json(response);
@@ -152,6 +151,25 @@ router.get("/:storeId/products", isTokenValid, async (req, res, next) => {
     next(error);
   }
 });
+
+// GET /api/store/:storeId/products/:productId to get a specific product in a specific store.
+router.get(
+  "/:storeId/products/:productId",
+  isTokenValid,
+  async (req, res, next) => {
+    try {
+      const product = await Product.findById(req.params.productId);
+
+      if (!product) {
+        return res.status(404).json({ message: "Producto no encontrado" });
+      }
+
+      res.json(product);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 // PUT /api/store/:storeId/products/:productId to edit the information of a product in a store.
 router.put(
