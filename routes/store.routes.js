@@ -31,7 +31,7 @@ router.post("/create", isTokenValid, async (req, res, next) => {
 });
 
 // GET /api/store/user/:userId para obtener las tiendas de un usuario específico.
-router.get("/user/:userId", isTokenValid, async (req, res, next) => {
+router.get("/user/:userId", async (req, res, next) => {
   try {
     const stores = await Store.find({ owner: req.params.userId });
     res.json(stores);
@@ -136,7 +136,7 @@ router.post("/:storeId/product", isTokenValid, async (req, res, next) => {
 });
 
 // GET /api/store/:storeId/products to get a list of products in a specific store.
-router.get("/:storeId/products", isTokenValid, async (req, res, next) => {
+router.get("/:storeId/products", async (req, res, next) => {
   try {
     const response = await Store.findById(req.params.storeId).populate(
       "products"
@@ -153,23 +153,19 @@ router.get("/:storeId/products", isTokenValid, async (req, res, next) => {
 });
 
 // GET /api/store/:storeId/products/:productId to get a specific product in a specific store.
-router.get(
-  "/:storeId/products/:productId",
-  isTokenValid,
-  async (req, res, next) => {
-    try {
-      const product = await Product.findById(req.params.productId);
+router.get("/:storeId/products/:productId", async (req, res, next) => {
+  try {
+    const product = await Product.findById(req.params.productId);
 
-      if (!product) {
-        return res.status(404).json({ message: "Producto no encontrado" });
-      }
-
-      res.json(product);
-    } catch (error) {
-      next(error);
+    if (!product) {
+      return res.status(404).json({ message: "Producto no encontrado" });
     }
+
+    res.json(product);
+  } catch (error) {
+    next(error);
   }
-);
+});
 
 // PUT /api/store/:storeId/products/:productId to edit the information of a product in a store.
 router.put(
