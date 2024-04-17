@@ -2,14 +2,14 @@ const router = require("express").Router();
 const Product = require("../models/Product.model");
 
 // GET /api/products to get a list of all available products.
-// router.get("/", async (req, res, next) => {
-//   try {
-//     const products = await Product.find();
-//     res.json(products);
-//   } catch (error) {
-//     next(error);
-//   }
-// });
+router.get("/", async (req, res, next) => {
+  try {
+    const products = await Product.find();
+    res.json(products);
+  } catch (error) {
+    next(error);
+  }
+});
 
 // // GET /api/products/:productId to get the information of a specific product.
 // router.get("/:productId", async (req, res, next) => {

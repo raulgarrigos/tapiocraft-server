@@ -11,7 +11,7 @@ const profileRouter = require("./profile.routes");
 router.use("/profile", profileRouter);
 
 const productRouter = require("./products.routes");
-router.use("/product", productRouter);
+router.use("/products", productRouter);
 
 const storeRouter = require("./store.routes");
 router.use("/store", storeRouter);
