@@ -82,73 +82,46 @@ router.post("/products/:productId", isTokenValid, async (req, res, next) => {
 // DELETE /api/cart/products/:productId to remove a product from the cart.
 router.delete("/products/:productId", isTokenValid, async (req, res, next) => {
   try {
-    // Obtener el ID del usuario del token de autenticación
     const userId = req.payload.userId;
     const productId = req.params.productId;
 
-    // Buscar el carrito del usuario actual en la base de datos
     let userCart = await Cart.findOne({ user: userId });
 
-    // Verificar si el carrito existe
     if (!userCart) {
       return res.status(404).json({ message: "Cart not found" });
     }
 
-    // Buscar el índice del producto en el carrito
     const index = userCart.items.findIndex(
       (item) => item.product.toString() === productId
     );
 
-    // Verificar si el producto está en el carrito
     if (index === -1) {
       return res.status(404).json({ message: "Product not found in cart" });
     }
 
-    // Obtener la cantidad del producto en el carrito
+    // Guardar la cantidad del producto antes de eliminarlo del carrito
     const quantity = userCart.items[index].quantity;
 
-    // Si la cantidad es mayor que 1, reducir la cantidad en 1
+    // Eliminar el producto del carrito
     if (quantity > 1) {
       userCart.items[index].quantity--;
     } else {
-      // Si la cantidad es 1, decrementar el stock y luego eliminar el producto del carrito
-      const product = await Product.findById(productId);
-      product.stock++; // Incrementar el stock
-      await product.save(); // Guardar el producto actualizado
-      userCart.items.splice(index, 1); // Eliminar el producto del carrito
+      userCart.items.splice(index, 1);
     }
 
     // Guardar el carrito actualizado en la base de datos
     await userCart.save();
 
-    // Devolver una respuesta exitosa
-    res.status(200).json({ message: "Product removed from cart successfully" });
-  } catch (error) {
-    console.error(error);
-    next(error);
-  }
-});
-
-router.patch("/products/:productId/decrementStock", async (req, res, next) => {
-  try {
-    const productId = req.params.productId;
-
-    // Buscar el producto en la base de datos
+    // Recuperar el producto de la base de datos
     const product = await Product.findById(productId);
 
-    // Verificar si el producto existe
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
+    // Incrementar el stock del producto eliminado del carrito
+    if (product) {
+      product.stock++; // Incrementar el stock
+      await product.save(); // Guardar el producto actualizado
     }
 
-    // Decrementar el stock del producto en 1
-    product.stock--;
-
-    // Guardar el producto actualizado en la base de datos
-    await product.save();
-
-    // Devolver una respuesta exitosa
-    res.status(200).json({ message: "Stock decremented successfully" });
+    res.status(200).json({ message: "Product removed from cart successfully" });
   } catch (error) {
     console.error(error);
     next(error);
