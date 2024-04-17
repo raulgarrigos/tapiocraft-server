@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const isTokenValid = require("../middlewares/auth.middlewares");
 const Cart = require("../models/Cart.moddel");
+const Product = require("../models/Product.model");
 
 // GET /api/cart to get the information of the current user's cart.
 router.get("/", isTokenValid, async (req, res, next) => {
@@ -46,6 +47,15 @@ router.post("/products/:productId", isTokenValid, async (req, res, next) => {
       (item) => item.product.toString() === productId
     );
 
+    // Verificar si hay suficiente stock del producto
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    if (product.stock < 1) {
+      return res.status(400).json({ message: "Product out of stock" });
+    }
+
     // Si el producto ya está en el carrito, incrementar la cantidad
     if (existingItem) {
       existingItem.quantity++;
@@ -53,6 +63,10 @@ router.post("/products/:productId", isTokenValid, async (req, res, next) => {
       // Si el producto no está en el carrito, añadirlo
       userCart.items.push({ product: productId });
     }
+
+    // Decrementar el stock del producto en 1
+    product.stock--;
+    await product.save();
 
     // Guardar el carrito actualizado en la base de datos
     await userCart.save();
