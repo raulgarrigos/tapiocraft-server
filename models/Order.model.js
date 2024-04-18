@@ -7,6 +7,16 @@ const orderSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    surname: {
+      type: String,
+      required: true,
+      trim: true,
+    },
     stores: [
       {
         type: mongoose.Schema.Types.ObjectId,

@@ -22,8 +22,8 @@ router.use("/cart", cartRouter);
 const orderRouter = require("./orders.routes");
 router.use("/order", orderRouter);
 
-const paymentRouter = require("./payment.routes");
-router.use("/payment", paymentRouter);
+const checkoutRouter = require("./checkout.routes");
+router.use("/checkout", checkoutRouter);
 
 const reviewRouter = require("./reviews.routes");
 router.use("/review", reviewRouter);

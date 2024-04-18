@@ -3,14 +3,15 @@ const isTokenValid = require("../middlewares/auth.middlewares");
 const Order = require("../models/Order.model");
 const Cart = require("../models/Cart.model");
 
-// POST /api/orders to place an order for the products in the cart.
-router.post("/", isTokenValid, async (req, res, next) => {
+// POST /api/checkout/:cartId to place an order for the products in the cart.
+router.post("/:cartId", isTokenValid, async (req, res, next) => {
   try {
     const userId = req.payload.userId;
-    const { shippingAddress, paymentMethod } = req.body;
+    const { cartId } = req.params;
+    const { name, surname, shippingAddress, paymentMethod } = req.body;
 
     // Buscar el carrito del usuario en la base de datos
-    const userCart = await Cart.findOne({ user: userId });
+    const userCart = await Cart.findOne(cartId);
 
     if (!userCart || userCart.items.length === 0) {
       return res.status(400).json({ message: "Cart is empty" });
@@ -33,6 +34,8 @@ router.post("/", isTokenValid, async (req, res, next) => {
     // Crear la orden
     const newOrder = await Order.create({
       user: userId,
+      name,
+      surname,
       stores: storesIds,
       shippingAddress,
       products: productsInCart,
