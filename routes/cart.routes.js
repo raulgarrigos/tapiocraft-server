@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const isTokenValid = require("../middlewares/auth.middlewares");
-const Cart = require("../models/Cart.moddel");
+const Cart = require("../models/Cart.model");
 const Product = require("../models/Product.model");
 
 // GET /api/cart to get the information of the current user's cart.

@@ -7,11 +7,13 @@ const orderSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    store: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Store",
-      required: true,
-    },
+    stores: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Store",
+        required: true,
+      },
+    ],
     shippingAddress: {
       type: String,
       required: true,
