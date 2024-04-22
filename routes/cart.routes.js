@@ -7,7 +7,7 @@ const Product = require("../models/Product.model");
 router.get("/", isTokenValid, async (req, res, next) => {
   try {
     // Obtener el ID del usuario del token de autenticación
-    const userId = req.payload.userId;
+    const userId = req.payload._id;
 
     // Buscar el carrito del usuario actual en la base de datos
     const userCart = await Cart.findOne({ user: userId }).populate(
@@ -31,7 +31,7 @@ router.get("/", isTokenValid, async (req, res, next) => {
 router.post("/products/:productId", isTokenValid, async (req, res, next) => {
   try {
     // Obtener el ID del usuario del token de autenticación
-    const userId = req.payload.userId;
+    const userId = req.payload._id;
     const productId = req.params.productId;
 
     // Buscar el carrito del usuario actual en la base de datos
@@ -82,7 +82,7 @@ router.post("/products/:productId", isTokenValid, async (req, res, next) => {
 // DELETE /api/cart/products/:productId to remove a product from the cart.
 router.delete("/products/:productId", isTokenValid, async (req, res, next) => {
   try {
-    const userId = req.payload.userId;
+    const userId = req.payload._id;
     const productId = req.params.productId;
 
     let userCart = await Cart.findOne({ user: userId });

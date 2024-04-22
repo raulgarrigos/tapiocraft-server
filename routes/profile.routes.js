@@ -7,7 +7,6 @@ const router = require("express").Router();
 router.get("/:userId", isTokenValid, async (req, res, next) => {
   try {
     const user = await User.findById(req.params.userId);
-    console.log(user);
     res.json(user);
   } catch (error) {
     next(error);

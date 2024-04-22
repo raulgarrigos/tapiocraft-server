@@ -46,7 +46,6 @@ router.get("/:storeId", async (req, res, next) => {
     const response = await Store.findOne({
       _id: req.params.storeId,
     });
-    console.log(response);
     res.json(response);
   } catch (error) {
     next(error);
@@ -74,7 +73,6 @@ router.put("/:storeId", isTokenValid, async (req, res, next) => {
       category,
       refundPolicy,
     });
-    console.log(response);
     res.json("Store updated successfully");
   } catch (error) {
     next(error);

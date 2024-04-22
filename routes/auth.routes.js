@@ -125,8 +125,6 @@ router.post("/register", async (req, res, next) => {
   }
 });
 
-// ** POST /login **
-
 router.post("/login", async (req, res, next) => {
   const { username, password } = req.body;
 
