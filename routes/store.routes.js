@@ -31,7 +31,7 @@ router.post("/create", isTokenValid, async (req, res, next) => {
 });
 
 // GET /api/store/user/:userId para obtener las tiendas de un usuario específico.
-router.get("/user/:userId", async (req, res, next) => {
+router.get("/:userId", async (req, res, next) => {
   try {
     const stores = await Store.find({ owner: req.params.userId });
     res.json(stores);

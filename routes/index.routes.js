@@ -20,7 +20,7 @@ const cartRouter = require("./cart.routes");
 router.use("/cart", cartRouter);
 
 const orderRouter = require("./orders.routes");
-router.use("/order", orderRouter);
+router.use("/orders", orderRouter);
 
 const checkoutRouter = require("./checkout.routes");
 router.use("/checkout", checkoutRouter);
