@@ -41,11 +41,9 @@ router.get("/:userId", async (req, res, next) => {
 });
 
 // GET /api/store/:storeId to get the information of a store.
-router.get("/:storeId", async (req, res, next) => {
+router.get("/:storeId/details", async (req, res, next) => {
   try {
-    const response = await Store.findOne({
-      _id: req.params.storeId,
-    });
+    const response = await Store.findById(req.params.storeId);
     res.json(response);
   } catch (error) {
     next(error);
