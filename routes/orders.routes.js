@@ -33,28 +33,60 @@ router.get("/:userId/:orderId", isTokenValid, async (req, res, next) => {
 // PUT /api/orders/:userId/:orderId (optional) to cancel or modify an order.
 router.put("/:userId/:orderId", isTokenValid, async (req, res, next) => {
   try {
-    const response = await Order.findByIdAndUpdate(req.params.orderId, {
-      status: "cancelled",
-    });
+    const orderId = req.params.orderId;
+
+    // Actualizar el estado del pedido y obtener el documento actualizado
+    const order = await Order.findByIdAndUpdate(
+      orderId,
+      { status: "cancelled" },
+      { new: true }
+    );
+
+    if (!order) {
+      return res.status(404).json({ message: "Pedido no encontrado" });
+    }
+
+    // Verificar si order.products está vacío
+    console.log("Productos del pedido:", order.products);
 
     // Devolver los productos al stock de las tiendas
-    for (const item of response.products) {
-      const product = await Product.findById(item.product);
+    for (const item of order.products) {
+      const productId = item.product;
+      const quantityReturned = item.quantity;
 
-      // Verificar si el producto existe
-      if (product) {
-        // Incrementar el stock del producto en la tienda correspondiente
-        const store = await Store.findById(product.store);
-        if (store) {
-          store.stock += item.quantity;
-          await store.save();
-        }
+      // Obtener el producto
+      const product = await Product.findById(productId);
+
+      // Verificar si Product.findById() está devolviendo los productos correctamente
+      console.log("Producto encontrado:", product);
+
+      if (!product) {
+        // Manejar el caso en que el producto no se encuentra
+        console.log(`Producto con ID ${productId} no encontrado`);
+        continue;
+      }
+
+      // Incrementar el stock del producto
+      product.stock += quantityReturned;
+
+      try {
+        // Guardar los cambios en la tienda
+        await product.save();
+        console.log("Stock actualizado: ", product);
+      } catch (error) {
+        console.log(
+          "Error al guardar los cambios en la tienda:",
+          error.message
+        );
       }
     }
 
-    res.json(response);
+    // Enviar la respuesta con el pedido actualizado
+    res.json(order);
   } catch (error) {
+    // Manejar errores
     next(error);
   }
 });
+
 module.exports = router;
