@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const isTokenValid = require("../middlewares/auth.middlewares");
+const uploader = require("../middlewares/cloudinary.config");
 const Store = require("../models/Store.model");
 const Product = require("../models/Product.model");
 
@@ -198,6 +199,30 @@ router.put(
       }
 
       res.json(updatedProduct);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// PATCH "/api/store/:storeId/products/:productId/image" para actualizar imagen del perfil
+router.patch(
+  "/:storeId/products/:productId/image",
+  isTokenValid,
+  uploader.single("image"),
+  async (req, res, next) => {
+    if (!req.file) {
+      res
+        .status(400)
+        .json({ errorMessage: "Ha habido un error con la imagen" });
+      return;
+    }
+
+    try {
+      await Product.findByIdAndUpdate(req.params.productId, {
+        images: req.file.path,
+      });
+      res.json({ imageUrl: req.file.path });
     } catch (error) {
       next(error);
     }
