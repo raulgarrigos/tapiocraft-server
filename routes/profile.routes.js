@@ -33,22 +33,6 @@ router.put("/:userId/update", isTokenValid, async (req, res, next) => {
   }
 });
 
-// POST "/api/profile/image" para acceder a cloudinary y actualizar la imagen de perfil
-router.post(
-  "/image",
-  isTokenValid,
-  uploader.single("image"),
-  (req, res, next) => {
-    if (!req.file) {
-      res
-        .status(400)
-        .json({ errorMessage: "Ha habido un error con la imagen" });
-      return;
-    }
-    res.json({ imageUrl: req.file.path });
-  }
-);
-
 // PATCH "/api/profile/image" para actualizar imagen del perfil
 router.patch(
   "/image",
