@@ -209,20 +209,27 @@ router.put(
 router.patch(
   "/:storeId/products/:productId/image",
   isTokenValid,
-  uploader.single("image"),
+  uploader.array("images"),
   async (req, res, next) => {
-    if (!req.file) {
+    if (!req.files || req.files.length === 0) {
       res
         .status(400)
-        .json({ errorMessage: "Ha habido un error con la imagen" });
+        .json({ errorMessage: "No se han proporcionado imágenes" });
       return;
     }
 
     try {
-      await Product.findByIdAndUpdate(req.params.productId, {
-        images: req.file.path,
-      });
-      res.json({ imageUrl: req.file.path });
+      const product = await Product.findById(req.params.productId);
+      if (!product) {
+        res.status(404).json({ errorMessage: "Producto no encontrado" });
+        return;
+      }
+
+      const newImages = req.files.map((file) => file.path); //
+      product.images = product.images.concat(newImages); //
+      await product.save();
+
+      res.json({ imageUrls: newImages });
     } catch (error) {
       next(error);
     }
