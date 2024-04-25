@@ -205,7 +205,7 @@ router.put(
   }
 );
 
-// PATCH "/api/store/:storeId/products/:productId/image" para actualizar imagen del perfil
+// PATCH "/api/store/:storeId/products/:productId/image" para añadir imagenes al producto
 router.patch(
   "/:storeId/products/:productId/image",
   isTokenValid,
@@ -230,6 +230,49 @@ router.patch(
       await product.save();
 
       res.json({ imageUrls: newImages });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// DELETE "/api/store/:storeId/products/:productId/image" para eliminar imagen del perfil
+router.delete(
+  "/:storeId/products/:productId/image",
+  isTokenValid,
+  async (req, res, next) => {
+    const imageToDeletePath = req.body.imagePath;
+
+    if (!imageToDeletePath) {
+      res.status(400).json({
+        errorMessage: "No se ha proporcionado la ruta de la imagen a eliminar",
+      });
+      return;
+    }
+
+    try {
+      const product = await Product.findById(req.params.productId);
+      if (!product) {
+        res.status(404).json({ errorMessage: "Producto no encontrado" });
+        return;
+      }
+
+      // Encuentra el índice de la imagen a eliminar en el array de imágenes del producto
+      const index = product.images.findIndex(
+        (image) => image === imageToDeletePath
+      );
+      if (index === -1) {
+        res.status(404).json({
+          errorMessage: "La imagen seleccionada no existe en el producto",
+        });
+        return;
+      }
+
+      // Elimina la imagen del array de imágenes del producto
+      product.images.splice(index, 1);
+      await product.save();
+
+      res.json({ success: true });
     } catch (error) {
       next(error);
     }
