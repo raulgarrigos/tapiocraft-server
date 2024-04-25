@@ -5,7 +5,7 @@ const Product = require("../models/Product.model");
 const Store = require("../models/Store.model");
 
 // GET /api/orders/userId to get a list of orders placed by the current user.
-router.get("/:userId", isTokenValid, async (req, res, next) => {
+router.get("/:userId/list", isTokenValid, async (req, res, next) => {
   try {
     const orders = await Order.find({ user: req.params.userId });
     res.json(orders);

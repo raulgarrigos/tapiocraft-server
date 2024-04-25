@@ -30,8 +30,8 @@ router.post("/create", isTokenValid, async (req, res, next) => {
   }
 });
 
-// GET /api/store/user/:userId para obtener las tiendas de un usuario específico.
-router.get("/:userId", async (req, res, next) => {
+// GET /api/store/:userId/list para obtener las tiendas de un usuario específico.
+router.get("/:userId/list", async (req, res, next) => {
   try {
     const stores = await Store.find({ owner: req.params.userId });
     res.json(stores);
@@ -51,7 +51,7 @@ router.get("/:storeId/details", async (req, res, next) => {
 });
 
 // PUT /api/store/:storeId to edit a store.
-router.put("/:storeId", isTokenValid, async (req, res, next) => {
+router.put("/:storeId/edit", isTokenValid, async (req, res, next) => {
   const { name, description, address, category, refundPolicy } = req.body;
   const { storeId } = req.params;
 
@@ -78,7 +78,7 @@ router.put("/:storeId", isTokenValid, async (req, res, next) => {
 });
 
 // DELETE /api/store/:storeId to delete a store
-router.delete("/:storeId", isTokenValid, async (req, res, next) => {
+router.delete("/:storeId/delete", isTokenValid, async (req, res, next) => {
   try {
     // Verificar si el usuario tiene permisos para eliminar la tienda
     const store = await Store.findById(req.params.storeId);

@@ -5,7 +5,7 @@ const Cart = require("../models/Cart.model");
 const Product = require("../models/Product.model");
 
 // POST /api/checkout/:cartId to place an order for the products in the cart.
-router.post("/:cartId", isTokenValid, async (req, res, next) => {
+router.post("/:cartId/order", isTokenValid, async (req, res, next) => {
   try {
     const userId = req.payload._id;
     const { cartId } = req.params;
