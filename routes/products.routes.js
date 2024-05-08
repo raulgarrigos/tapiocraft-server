@@ -17,7 +17,13 @@ router.get("/", async (req, res, next) => {
 // GET /api/products/:productId/reviews to get a list of reviews for a specific product.
 router.get("/:productId/reviews", async (req, res, next) => {
   try {
-    const reviews = await Product.find({ reviews: req.params.productId });
+    const productId = req.params.productId;
+
+    // Busca todas las revisiones que están asociadas con el producto específico
+    const reviews = await Review.find({
+      product: req.params.productId,
+    }).populate("user", "username");
+
     res.json(reviews);
   } catch (error) {
     next(error);
@@ -32,7 +38,10 @@ router.post("/:productId/review", isTokenValid, async (req, res, next) => {
 
   try {
     // Verifica si el usuario ha comprado el producto
-    const order = await Order.findOne({ userId, products: productId });
+    const order = await Order.findOne({
+      user: userId,
+      "products.product": productId,
+    });
 
     if (!order) {
       return res
@@ -43,8 +52,8 @@ router.post("/:productId/review", isTokenValid, async (req, res, next) => {
     // Si el usuario ha comprado el producto, puedes proceder a añadir la reseña
 
     const review = await Review.create({
-      userId,
-      productId,
+      user: userId,
+      product: productId,
       rating,
       comment,
     });
@@ -53,7 +62,12 @@ router.post("/:productId/review", isTokenValid, async (req, res, next) => {
       $push: { reviews: review._id },
     });
 
-    res.status(201).json({ message: "Review added successfully.", review });
+    // Obtiene el producto actualizado
+    const updatedProduct = await Product.findById(productId);
+
+    res
+      .status(201)
+      .json({ message: "Review added successfully.", review, updatedProduct });
   } catch (error) {
     next(error);
   }
