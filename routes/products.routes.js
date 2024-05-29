@@ -17,8 +17,6 @@ router.get("/", async (req, res, next) => {
 // GET /api/products/:productId/reviews to get a list of reviews for a specific product.
 router.get("/:productId/reviews", async (req, res, next) => {
   try {
-    const productId = req.params.productId;
-
     // Busca todas las revisiones que están asociadas con el producto específico
     const reviews = await Review.find({
       product: req.params.productId,
@@ -72,6 +70,45 @@ router.post("/:productId/review", isTokenValid, async (req, res, next) => {
     next(error);
   }
 });
+
+// DELETE /api/products/:productId/reviews/:reviewId to delete a review for a product.
+router.delete(
+  "/:productId/reviews/:reviewId",
+  isTokenValid,
+  async (req, res, next) => {
+    const { productId, reviewId } = req.params;
+    const userId = req.payload._id;
+
+    try {
+      // Verifica si la reseña pertenece al usuario actual
+      const review = await Review.findOne({ _id: reviewId, user: userId });
+
+      if (!review) {
+        return res
+          .status(404)
+          .json({
+            message:
+              "Review not found or user does not have permission to delete it.",
+          });
+      }
+
+      // Elimina la reseña
+      await Review.findByIdAndDelete(reviewId);
+
+      // Elimina la referencia de la reseña del producto
+      await Product.findByIdAndUpdate(productId, {
+        $pull: { reviews: reviewId },
+      });
+
+      // Obtiene el producto actualizado
+      const updatedProduct = await Product.findById(productId);
+
+      res.json({ message: "Review deleted successfully.", updatedProduct });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 // GET /api/products/:productId to get the information of a specific product.
 
