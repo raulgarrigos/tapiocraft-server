@@ -3,6 +3,8 @@ const isTokenValid = require("../middlewares/auth.middlewares");
 const uploader = require("../middlewares/cloudinary.config");
 const Store = require("../models/Store.model");
 const Product = require("../models/Product.model");
+const Order = require("../models/Order.model");
+const Review = require("../models/Review.model");
 
 // GET /api/store para obtener todas las tiendas.
 router.get("/", async (req, res, next) => {
@@ -308,6 +310,100 @@ router.delete(
       }
 
       res.json({ message: "Producto eliminado correctamente" });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// GET /api/products/:productId/reviews to get a list of reviews for a specific product.
+router.get("/:storeId/reviews", async (req, res, next) => {
+  try {
+    // Busca todas las revisiones que están asociadas con el producto específico
+    const reviews = await Review.find({
+      product: req.params.productId,
+    }).populate("user", "username");
+
+    res.json(reviews);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/:storeId/review", isTokenValid, async (req, res, next) => {
+  const { rating, comment } = req.body;
+  const storeId = req.params.storeId;
+  const userId = req.payload._id;
+
+  try {
+    // Verifica si el usuario ha comprado algo de la tienda
+    const order = await Order.findOne({
+      user: userId,
+      stores: storeId,
+    });
+
+    if (!order) {
+      return res.status(403).json({
+        message: "You can only review stores you have purchased from.",
+      });
+    }
+
+    // Si el usuario ha comprado algo de la tienda, procede a añadir la reseña
+    const review = await Review.create({
+      user: userId,
+      store: storeId,
+      rating,
+      comment,
+      reviewType: "store", // Añadir el campo reviewType
+    });
+
+    await Store.findByIdAndUpdate(storeId, {
+      $push: { reviews: review._id },
+    });
+
+    // Obtiene la tienda actualizada
+    const updatedStore = await Store.findById(storeId);
+
+    res.status(201).json({
+      message: "Review added successfully.",
+      review,
+      updatedStore,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete(
+  "/:storeId/reviews/:reviewId",
+  isTokenValid,
+  async (req, res, next) => {
+    const { productId, reviewId } = req.params;
+    const userId = req.payload._id;
+
+    try {
+      // Verifica si la reseña pertenece al usuario actual
+      const review = await Review.findOne({ _id: reviewId, user: userId });
+
+      if (!review) {
+        return res.status(404).json({
+          message:
+            "Review not found or user does not have permission to delete it.",
+        });
+      }
+
+      // Elimina la reseña
+      await Review.findByIdAndDelete(reviewId);
+
+      // Elimina la referencia de la reseña del producto
+      await Product.findByIdAndUpdate(productId, {
+        $pull: { reviews: reviewId },
+      });
+
+      // Obtiene el producto actualizado
+      const updatedProduct = await Product.findById(productId);
+
+      res.json({ message: "Review deleted successfully.", updatedProduct });
     } catch (error) {
       next(error);
     }

@@ -10,7 +10,10 @@ const reviewSchema = new mongoose.Schema(
     product: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
-      required: true,
+    },
+    store: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Store",
     },
     rating: {
       type: Number,
@@ -21,6 +24,11 @@ const reviewSchema = new mongoose.Schema(
     comment: {
       type: String,
       trim: true,
+    },
+    reviewType: {
+      type: String,
+      enum: ["product", "store"],
+      required: true,
     },
   },
   { timestamps: true }

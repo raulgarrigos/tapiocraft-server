@@ -28,7 +28,4 @@ router.use("/checkout", checkoutRouter);
 const reviewRouter = require("./reviews.routes");
 router.use("/review", reviewRouter);
 
-const commentRouter = require("./comments.routes");
-router.use("/comment", commentRouter);
-
 module.exports = router;

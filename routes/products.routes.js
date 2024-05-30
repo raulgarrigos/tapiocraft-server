@@ -48,12 +48,12 @@ router.post("/:productId/review", isTokenValid, async (req, res, next) => {
     }
 
     // Si el usuario ha comprado el producto, puedes proceder a añadir la reseña
-
     const review = await Review.create({
       user: userId,
       product: productId,
       rating,
       comment,
+      reviewType: "product",
     });
 
     await Product.findByIdAndUpdate(productId, {
@@ -84,12 +84,10 @@ router.delete(
       const review = await Review.findOne({ _id: reviewId, user: userId });
 
       if (!review) {
-        return res
-          .status(404)
-          .json({
-            message:
-              "Review not found or user does not have permission to delete it.",
-          });
+        return res.status(404).json({
+          message:
+            "Review not found or user does not have permission to delete it.",
+        });
       }
 
       // Elimina la reseña
